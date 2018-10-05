@@ -10,7 +10,7 @@
 namespace fs = std::experimental::filesystem;
 
 using namespace sc2;
-#define MY_DEBUG
+//#define MY_DEBUG
 #define VS_4_5_1 "4.5.1/"
 #define VS_4_4_0 "4.4.0/"
 

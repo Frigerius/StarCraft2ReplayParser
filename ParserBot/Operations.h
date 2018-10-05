@@ -1,17 +1,6 @@
 #pragma once
 #include "MyEnums.h"
 
-
-enum class SECTORS : int
-{
-    START_CURRENT_MATERIAL = 0,
-    START_IN_PRODUCTION = int(MATERIAL::MAX),
-    START_PROGRESS = START_IN_PRODUCTION + int(MATERIAL::MAX),
-    START_GAME_DATA = START_PROGRESS + int(MATERIAL::MAX),
-    START_POSSIBLE_ACTIONS = START_GAME_DATA + int(GAME_DATA::MAX),
-    MAX = START_POSSIBLE_ACTIONS + int(ACTION::MAX),
-};
-
 static bool NeedUnitToGetCorrectAbilits(const ABILITY_ID& ability_id) {
     switch (ability_id) {
         case ABILITY_ID::BUILD_REACTOR: return true;
@@ -84,8 +73,8 @@ static int GetGameDataIndex(const GAME_DATA& index) {
     return (int)SECTORS::START_GAME_DATA + (int)index;
 }
 
-static int GetPossibleActionIndex(const MATERIAL& index) {
-    if (index == MATERIAL::INVALID)
+static int GetPossibleActionIndex(const ACTION& index) {
+    if (index == ACTION::INVALID)
         return (int)index;
     return (int)SECTORS::START_POSSIBLE_ACTIONS + (int)index;
 }

@@ -207,6 +207,16 @@ enum class GAME_DATA : int
     MAX,
 };
 
+enum class SECTORS : int
+{
+    START_CURRENT_MATERIAL = 0,
+    START_IN_PRODUCTION = int(MATERIAL::MAX),
+    START_PROGRESS = START_IN_PRODUCTION + int(MATERIAL::MAX),
+    START_GAME_DATA = START_PROGRESS + int(MATERIAL::MAX),
+    START_POSSIBLE_ACTIONS = START_GAME_DATA + int(GAME_DATA::MAX),
+    MAX = START_POSSIBLE_ACTIONS + int(ACTION::MAX),
+};
+
 static UNIT_TYPEID GetUnitTypeFromAbility(const ABILITY_ID& ability_id) {
     switch (ability_id) {
         //Buildings
