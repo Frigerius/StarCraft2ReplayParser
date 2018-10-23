@@ -6,6 +6,10 @@
 #include "sc2api/sc2_data.h"
 #include <filesystem>
 
+#ifndef TRACK_HISTORY
+#define TRACK_HISTORY 0
+#endif
+
 #define ADD_VALUE(PROPERTYNAME, VALUE) #PROPERTYNAME << ": \"" << VALUE << "\""
 
 ReplayParser::ReplayParser(int id) : mId(id), mFirstStep(false), mEnded(false), mLastFeatures() {
@@ -274,8 +278,33 @@ void ReplayParser::OnStep() {
     // <- Avaiable Technology
 
     // Append Expected Result to last Step
+#if !TRACK_HISTORY
     if (!mFirstStep) {
+#endif
+        auto writeAction = [this](ACTION resultAction, ABILITY_ID realAbilityId) {
+            for (auto i = 0; i < int(SECTORS::MAX); ++i) {
+                if (SaveAsFloat(i)) {
+                    mStream << std::setprecision(3) << mLastFeatures[i];
+                } else {
+                    mStream << std::setprecision(0) << mLastFeatures[i];
+                }
+                mStream << (i < int(SECTORS::MAX) - 1 ? ";" : "");
+            }
+            mStream << "#" << ActionToName(resultAction) << std::endl;
+
+            // Add Actions to BuildQueue
+            if (int(resultAction) > int(ACTION::INVALID)) {
+                if (int(resultAction) < int(MATERIAL_SECTIONS::START_UPGRADES)) {  // Is Unit
+                    mBuildOrdersFromActions.emplace_back(Observation()->GetGameLoop(), GetUnitTypeFromAbility(realAbilityId));
+                } else if (int(resultAction) < int(MATERIAL_SECTIONS::MAX)) {  // Is Upgrade
+                    mBuildOrdersFromActions.emplace_back(Observation()->GetGameLoop(), GetUpgradeIdFromAbilityId(realAbilityId));
+                }
+            }
+        };
+
         const auto& actions = obs->GetRawActions();
+
+        bool wroteSmth = false;
         if (!actions.empty()) {
             for (const auto& action : actions) {
                 ACTION resultAction = ACTION::INVALID;
@@ -286,28 +315,21 @@ void ReplayParser::OnStep() {
                 resultAction = GetActionFromAbility(realAbilityId);
 
                 if (int(resultAction) > int(ACTION::INVALID)) {
-                    for (auto i = 0; i < int(SECTORS::MAX); ++i) {
-                        if (SaveAsFloat(i)) {
-                            mStream << std::setprecision(3) << mLastFeatures[i];
-                        } else {
-                            mStream << std::setprecision(0) << mLastFeatures[i];
-                        }
-                        mStream << (i < int(SECTORS::MAX) - 1 ? ";" : "");
-                    }
-                    mStream << "#" << ActionToName(resultAction) << std::endl;
-
-                    // Add Actions to BuildQueue
-                    if (int(resultAction) < int(MATERIAL_SECTIONS::START_UPGRADES)) {  // Is Unit
-                        mBuildOrdersFromActions.emplace_back(Observation()->GetGameLoop(), GetUnitTypeFromAbility(realAbilityId));
-                    } else if (int(resultAction) < int(MATERIAL_SECTIONS::MAX)) {  // Is Upgrade
-                        mBuildOrdersFromActions.emplace_back(Observation()->GetGameLoop(), GetUpgradeIdFromAbilityId(realAbilityId));
-                    }
+                    wroteSmth = true;
+                    writeAction(resultAction, realAbilityId);
                 }
             }
         }
+#if TRACK_HISTORY
+        if (!wroteSmth) {
+            writeAction(ACTION::INVALID, ABILITY_ID::INVALID);
+        }
+#endif
+#if !TRACK_HISTORY
     } else {
         mFirstStep = false;
     }
+#endif
 
     memcpy(mLastFeatures, mCurrentFeatures, sizeof(mCurrentFeatures));
     mProcessedSteps = obs->GetGameLoop();
@@ -321,6 +343,10 @@ void ReplayParser::OnUnitCreated(const Unit* unit) {
         return;
     mSeenUnits.emplace(unit->tag);
     mBuildOrdersFromOnCreated.emplace_back(Observation()->GetGameLoop(), unit->unit_type.ToType());
+}
+
+void ReplayParser::OnUpgradeCompleted(UpgradeID upgrade) {
+    mBuildOrdersFromOnCreated.emplace_back(Observation()->GetGameLoop(), upgrade.ToType());
 }
 
 bool ReplayParser::IgnoreReplay(const ReplayInfo& replay_info, uint32_t& player_id) {

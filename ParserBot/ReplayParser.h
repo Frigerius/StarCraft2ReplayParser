@@ -38,7 +38,8 @@ public:
     virtual void OnGameEnd() override;
 
     virtual void OnStep() override;
-    virtual void OnUnitCreated(const Unit*);
+    virtual void OnUnitCreated(const Unit*) override;
+    virtual void OnUpgradeCompleted(UpgradeID) override;
 
     virtual bool IgnoreReplay(const ReplayInfo& replay_info, uint32_t& player_id) override;
 
