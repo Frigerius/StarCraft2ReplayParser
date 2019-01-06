@@ -45,6 +45,8 @@ void ReplayParser::OnGameStart() {
     const GameInfo& gameInfo = obs->GetGameInfo(true);
     mCurrentMapName = gameInfo.map_name;
     mStream.str(std::string());
+    mRawActionStream.str(std::string());
+    mActionStream.str(std::string());
     mFirstStep = true;
     mEnded = false;
     mBuildOrdersFromActions.clear();
@@ -55,6 +57,8 @@ void ReplayParser::OnGameStart() {
     const std::string::size_type pos2 = replayPath.find_last_of('.');
     mCurrentReplayName = replayPath.substr(pos1 + 1, pos2 - pos1 - 1);
     mProcessedSteps = 0;
+    memset(mCurrentFeatures, 0, sizeof(mCurrentFeatures));
+    memset(mLastFeatures, 0, sizeof(mLastFeatures));
 }
 
 void ReplayParser::OnGameEnd() {
@@ -123,6 +127,16 @@ void ReplayParser::OnGameEnd() {
 #endif
     infoFile << replayPath << std::endl;
     infoFile.close();
+
+    std::ofstream raw_action_file;
+    raw_action_file.open(mOutputFolder + mCurrentReplayName + ".raw_actions", std::ios_base::out);
+    raw_action_file << mRawActionStream.str() << std::endl;
+    raw_action_file.close();
+
+    std::ofstream action_file;
+    action_file.open(mOutputFolder + mCurrentReplayName + ".actions", std::ios_base::out);
+    action_file << mActionStream.str() << std::endl;
+    action_file.close();
 }
 
 void ReplayParser::OnStep() {
@@ -223,7 +237,7 @@ void ReplayParser::OnStep() {
     ADD_AVAILABLE_EXTENSIONS(TECHLAB, STARPORT);
     ADD_AVAILABLE_EXTENSIONS(REACTOR, STARPORT);
     ADD_AVAILABLE_TEC(GHOSTACADEMY, HAS_MAT(BARRACKS));
-    ADD_AVAILABLE_TEC(ENGINEERINGBAY, HAS_MAT(COMMANDCENTER));
+    ADD_AVAILABLE_TEC(ENGINEERINGBAY, HAS_MAT(COMMANDCENTER) || HAS_MAT(ORBITALCOMMAND) || HAS_MAT(PLANETARYFORTRESS));
     ADD_AVAILABLE_TEC(ARMORY, HAS_MAT(FACTORY));
     ADD_AVAILABLE_TEC(FUSIONCORE, HAS_MAT(STARPORT));
     ADD_AVAILABLE_TEC(SENSORTOWER, HAS_MAT(ENGINEERINGBAY));
@@ -278,9 +292,7 @@ void ReplayParser::OnStep() {
     // <- Avaiable Technology
 
     // Append Expected Result to last Step
-#if !TRACK_HISTORY
     if (!mFirstStep) {
-#endif
         auto writeAction = [this](ACTION resultAction, ABILITY_ID realAbilityId) {
             for (auto i = 0; i < int(SECTORS::MAX); ++i) {
                 if (SaveAsFloat(i)) {
@@ -303,10 +315,33 @@ void ReplayParser::OnStep() {
         };
 
         const auto& actions = obs->GetRawActions();
+        for (const auto& action : actions) {
+            mRawActionStream << obs->GetGameLoop() << ";" << action.ability_id.to_string() << ";" << AbilityTypeToName(action.ability_id) << "\n";
+            ABILITY_ID realAbilityId = action.ability_id;
+            if (NeedUnitToGetCorrectAbilits(action.ability_id)) {
+                realAbilityId = GetActualAbility(action.ability_id, obs->GetUnit(action.unit_tags[0]));
+            }
+            auto resultAction = GetActionFromAbility(realAbilityId);
+            if (int(resultAction) > int(ACTION::INVALID)) {
+                mActionStream << obs->GetGameLoop() << ";" << ActionToName(resultAction) << "\n";
+            }
+            if (realAbilityId == ABILITY_ID::LIFT || realAbilityId == ABILITY_ID::LAND) {
+                for (const auto& tag : action.unit_tags) {
+                    auto unit = obs->GetUnit(tag);
+                    auto addon = obs->GetUnit(unit->add_on_tag);
+                    mActionStream << obs->GetGameLoop() << ";" << AbilityTypeToName(action.ability_id) << ";" << UnitTypeToName(unit->unit_type.ToType()) << ";"
+                                  << (addon ? UnitTypeToName(addon->unit_type.ToType()) : "None") << "\n";
+                }
+            }
+        }
 
         bool wroteSmth = false;
         if (!actions.empty()) {
+            std::unordered_set<ABILITY_ID> actions_done;
             for (const auto& action : actions) {
+                if (actions_done.count(action.ability_id.ToType()) > 0)
+                    continue;
+                actions_done.emplace(action.ability_id.ToType());
                 ACTION resultAction = ACTION::INVALID;
                 ABILITY_ID realAbilityId = action.ability_id;
                 if (NeedUnitToGetCorrectAbilits(action.ability_id)) {
@@ -325,11 +360,9 @@ void ReplayParser::OnStep() {
             writeAction(ACTION::INVALID, ABILITY_ID::INVALID);
         }
 #endif
-#if !TRACK_HISTORY
     } else {
         mFirstStep = false;
     }
-#endif
 
     memcpy(mLastFeatures, mCurrentFeatures, sizeof(mCurrentFeatures));
     mProcessedSteps = obs->GetGameLoop();

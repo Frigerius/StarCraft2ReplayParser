@@ -46,6 +46,8 @@ public:
 private:
     int mId;
     std::ostringstream mStream;
+    std::ostringstream mRawActionStream;
+    std::ostringstream mActionStream;
     bool mFirstStep;
     bool mEnded;
     std::string mOutputFolder;

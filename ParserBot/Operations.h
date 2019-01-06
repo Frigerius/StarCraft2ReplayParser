@@ -13,15 +13,21 @@ static ABILITY_ID GetActualAbility(const ABILITY_ID& ability_id, const UNIT_TYPE
     switch (ability_id) {
         case ABILITY_ID::BUILD_REACTOR:
             switch (unit_type) {
-                case UNIT_TYPEID::TERRAN_BARRACKS:      return ABILITY_ID::BUILD_REACTOR_BARRACKS;
-                case UNIT_TYPEID::TERRAN_FACTORY:       return ABILITY_ID::BUILD_REACTOR_FACTORY;
-                case UNIT_TYPEID::TERRAN_STARPORT:      return ABILITY_ID::BUILD_REACTOR_STARPORT;
+                case UNIT_TYPEID::TERRAN_BARRACKSFLYING:    return ABILITY_ID::BUILD_REACTOR_BARRACKS;
+                case UNIT_TYPEID::TERRAN_BARRACKS:          return ABILITY_ID::BUILD_REACTOR_BARRACKS;
+                case UNIT_TYPEID::TERRAN_FACTORYFLYING:     return ABILITY_ID::BUILD_REACTOR_FACTORY;
+                case UNIT_TYPEID::TERRAN_FACTORY:           return ABILITY_ID::BUILD_REACTOR_FACTORY;
+                case UNIT_TYPEID::TERRAN_STARPORTFLYING:    return ABILITY_ID::BUILD_REACTOR_STARPORT;
+                case UNIT_TYPEID::TERRAN_STARPORT:          return ABILITY_ID::BUILD_REACTOR_STARPORT;
             } break;
         case ABILITY_ID::BUILD_TECHLAB:
             switch (unit_type) {
-                case UNIT_TYPEID::TERRAN_BARRACKS:      return ABILITY_ID::BUILD_TECHLAB_BARRACKS;
-                case UNIT_TYPEID::TERRAN_FACTORY:       return ABILITY_ID::BUILD_TECHLAB_FACTORY;
-                case UNIT_TYPEID::TERRAN_STARPORT:      return ABILITY_ID::BUILD_TECHLAB_STARPORT;
+                case UNIT_TYPEID::TERRAN_BARRACKSFLYING:    return ABILITY_ID::BUILD_TECHLAB_BARRACKS;
+                case UNIT_TYPEID::TERRAN_BARRACKS:          return ABILITY_ID::BUILD_TECHLAB_BARRACKS;
+                case UNIT_TYPEID::TERRAN_FACTORYFLYING:     return ABILITY_ID::BUILD_TECHLAB_FACTORY;
+                case UNIT_TYPEID::TERRAN_FACTORY:           return ABILITY_ID::BUILD_TECHLAB_FACTORY;
+                case UNIT_TYPEID::TERRAN_STARPORTFLYING:    return ABILITY_ID::BUILD_TECHLAB_STARPORT;
+                case UNIT_TYPEID::TERRAN_STARPORT:          return ABILITY_ID::BUILD_TECHLAB_STARPORT;
             } break;
     }
     return ability_id;
@@ -31,15 +37,21 @@ static ACTION GetActionFromAbility(const ABILITY_ID& ability_id, const UNIT_TYPE
     switch (ability_id) {
         case ABILITY_ID::BUILD_REACTOR:
             switch (unit_type) {
-                case UNIT_TYPEID::TERRAN_BARRACKS:      return ACTION::REACTOR_BARRACKS;
-                case UNIT_TYPEID::TERRAN_FACTORY:       return ACTION::REACTOR_FACTORY;
-                case UNIT_TYPEID::TERRAN_STARPORT:      return ACTION::REACTOR_STARPORT;
+                case UNIT_TYPEID::TERRAN_BARRACKSFLYING:    return ACTION::REACTOR_BARRACKS;
+                case UNIT_TYPEID::TERRAN_BARRACKS:          return ACTION::REACTOR_BARRACKS;
+                case UNIT_TYPEID::TERRAN_FACTORYFLYING:     return ACTION::REACTOR_FACTORY;
+                case UNIT_TYPEID::TERRAN_FACTORY:           return ACTION::REACTOR_FACTORY;
+                case UNIT_TYPEID::TERRAN_STARPORTFLYING:    return ACTION::REACTOR_STARPORT;
+                case UNIT_TYPEID::TERRAN_STARPORT:          return ACTION::REACTOR_STARPORT;
             } break;
         case ABILITY_ID::BUILD_TECHLAB:
             switch (unit_type) {
-                case UNIT_TYPEID::TERRAN_BARRACKS:      return ACTION::TECHLAB_BARRACKS;
-                case UNIT_TYPEID::TERRAN_FACTORY:       return ACTION::TECHLAB_FACTORY;
-                case UNIT_TYPEID::TERRAN_STARPORT:      return ACTION::TECHLAB_STARPORT;
+                case UNIT_TYPEID::TERRAN_BARRACKSFLYING:    return ACTION::TECHLAB_BARRACKS;
+                case UNIT_TYPEID::TERRAN_BARRACKS:          return ACTION::TECHLAB_BARRACKS;
+                case UNIT_TYPEID::TERRAN_FACTORYFLYING:     return ACTION::TECHLAB_FACTORY;
+                case UNIT_TYPEID::TERRAN_FACTORY:           return ACTION::TECHLAB_FACTORY;
+                case UNIT_TYPEID::TERRAN_STARPORTFLYING:    return ACTION::TECHLAB_STARPORT;
+                case UNIT_TYPEID::TERRAN_STARPORT:          return ACTION::TECHLAB_STARPORT;
             } break;
     }
     return GetActionFromAbility(ability_id);
